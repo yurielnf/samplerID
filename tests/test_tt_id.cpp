@@ -93,7 +93,7 @@ TEST_CASE("global pivots with linear cost", "[tt_id]") {
     // Full tensor has d^dim = 10^6 elements; cost must be far less.
     REQUIRE(count < (long)std::pow(d, dim) / 5);
 
-    // After adding pivots the approximation should still be accurate.
-    std::vector<int> ids = {1, 3, 5, 2, 4, 0};
-    REQUIRE(std::abs(ci.tt.eval(ids) - myf(ids)) < 1e-4);
+    // Every added pivot must be interpolated exactly.
+    for (const auto& pv : pivots)
+        REQUIRE(std::abs(ci.tt.eval(pv) - myf(pv)) < 1e-10);
 }
