@@ -25,7 +25,7 @@ struct tt_id {
     tt_id_param param;
     std::vector<double> pivotError;
     std::vector<IndexSet<MultiIndex>> Iset, localSet, Jset;
-    TensorTrain tt;
+    TensorTrain<T> tt;
     int cIter = 0, center = 0;
 
     tt_id() = default;
@@ -148,7 +148,7 @@ protected:
     {
         auto M = torch::empty({(int64_t)I.size(), (int64_t)J.size()},
                               torch::TensorOptions().dtype(dtype_v));
-        auto ptr = M.data_ptr<T>();
+        auto ptr = M.template data_ptr<T>();
         for (size_t i = 0; i < I.size(); i++)
             for (size_t j = 0; j < J.size(); j++) {
                 MultiIndex ij = I[i] + J[j];

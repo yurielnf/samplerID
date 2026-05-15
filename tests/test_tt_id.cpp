@@ -2,6 +2,7 @@
 #include "sampler_id/tt_id.h"
 #include <numeric>
 #include <cmath>
+#include <random>
 
 TEST_CASE("tt_id<double> convergence on sum+cos", "[tt_id]") {
     SECTION("cos and sum are rank 2") {
@@ -40,13 +41,14 @@ TEST_CASE("tt_id<double> convergence on sum+cos", "[tt_id]") {
 
 TEST_CASE("tt_id<float> on linear function", "[tt_id]") {
     int dim = 3, d = 5;
+    tt_id_param p; p.pivot1 = {1, 1, 1};
     auto ci = tt_id<float>([](std::vector<int> id) -> float {
         float s = 0; for (int x : id) s += x; return s;
-    }, std::vector<int>(dim, d));
+    }, std::vector<int>(dim, d), p);
     ci.iterate(5);
 
     std::vector<int> ids = {1, 2, 3};
-    REQUIRE(std::abs(ci.tt.eval<float>(ids) - 6.0f) < 1e-4f);
+    REQUIRE(std::abs(ci.tt.eval(ids) - 6.0f) < 1e-4f);
 }
 
 TEST_CASE("tt_id<complex<double>> on separable function", "[tt_id]") {
@@ -64,6 +66,34 @@ TEST_CASE("tt_id<complex<double>> on separable function", "[tt_id]") {
 
     std::vector<int> ids = {2, 3, 1};
     T expected = T(std::cos(2), std::sin(2)) * T(std::cos(3), std::sin(3)) * T(std::cos(1), std::sin(1));
-    auto got = ci.tt.eval<T>(ids);
+    auto got = ci.tt.eval(ids);
     REQUIRE(std::abs(got - expected) < 1e-8);
+}
+
+TEST_CASE("global pivots with linear cost", "[tt_id]") {
+    int dim = 6, d = 10, nPivots = 200;
+    long count = 0;
+    auto myf = [&](std::vector<int> id) -> double {
+        count++;
+        double s = 0; for (int x : id) s += x;
+        return std::cos(s);
+    };
+    tt_id_param p; p.use_cache = true;
+    auto ci = tt_id<double>(myf, std::vector<int>(dim, d), p);
+
+    std::mt19937 rng(42);
+    std::uniform_int_distribution<int> dist(0, d - 1);
+    std::vector<std::vector<int>> pivots(nPivots, std::vector<int>(dim));
+    for (auto& pv : pivots)
+        for (auto& x : pv) x = dist(rng);
+
+    count = 0;
+    ci.addPivotsAllBonds(pivots);
+
+    // Full tensor has d^dim = 10^6 elements; cost must be far less.
+    REQUIRE(count < (long)std::pow(d, dim) / 5);
+
+    // After adding pivots the approximation should still be accurate.
+    std::vector<int> ids = {1, 3, 5, 2, 4, 0};
+    REQUIRE(std::abs(ci.tt.eval(ids) - myf(ids)) < 1e-4);
 }

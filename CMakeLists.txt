@@ -8,7 +8,6 @@ find_package(Torch REQUIRED)
 set(SAMPLER_SOURCES
     src/lapack_wrapper.cpp
     src/interp_decomp.cpp
-    src/tt.cpp
 )
 set(SAMPLER_INCLUDE include)
 set(SAMPLER_LIBS "${TORCH_LIBRARIES}" lapack)
