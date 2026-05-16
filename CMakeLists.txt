@@ -2,8 +2,21 @@ cmake_minimum_required(VERSION 3.16)
 project(sampler)
 
 set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_PREFIX_PATH "${CMAKE_SOURCE_DIR}/libtorch")
-find_package(Torch REQUIRED)
+
+# --- LibTorch ---
+# Fast path: use a local libtorch/ directory if present.
+find_package(Torch QUIET PATHS "${CMAKE_SOURCE_DIR}/libtorch" NO_DEFAULT_PATH)
+if(NOT Torch_FOUND)
+    # Download the CPU-only prebuilt package.
+    set(LIBTORCH_VERSION "2.7.0" CACHE STRING "LibTorch version to download")
+    include(FetchContent)
+    FetchContent_Declare(libtorch
+        URL "https://download.pytorch.org/libtorch/cpu/libtorch-cxx11-abi-shared-with-deps-${LIBTORCH_VERSION}%2Bcpu.zip"
+    )
+    FetchContent_MakeAvailable(libtorch)
+    list(APPEND CMAKE_PREFIX_PATH "${libtorch_SOURCE_DIR}")
+    find_package(Torch REQUIRED)
+endif()
 
 set(SAMPLER_SOURCES
     src/lapack_wrapper.cpp
