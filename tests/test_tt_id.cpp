@@ -3,6 +3,7 @@
 #include <numeric>
 #include <cmath>
 #include <random>
+using namespace ttid;
 
 TEST_CASE("tt_id<double> convergence on sum+cos", "[tt_id]") {
     SECTION("cos and sum are rank 2") {

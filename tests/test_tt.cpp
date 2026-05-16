@@ -1,5 +1,6 @@
 #include <catch2/catch_test_macros.hpp>
 #include "sampler_id/tt.h"
+using namespace ttid;
 
 static double rel_err(const torch::Tensor& A, const torch::Tensor& B) {
     return (A - B).norm().item().toDouble() / A.norm().item().toDouble();

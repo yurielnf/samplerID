@@ -6,6 +6,8 @@
 #include <map>
 #include <vector>
 
+namespace ttid {
+
 using namespace xfac;
 
 struct tt_id_param {
@@ -182,3 +184,5 @@ protected:
 private:
     mutable std::map<std::vector<int>, T> cache;
 };
+
+} // namespace ttid

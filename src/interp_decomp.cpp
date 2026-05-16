@@ -1,6 +1,8 @@
 #include "sampler_id/interp_decomp.h"
 #include "sampler_id/lapack_wrapper.h"
 
+namespace ttid {
+
 static int64_t rank_from_diag(const torch::Tensor& R, double tol) {
     auto diag = R.diagonal().abs();
     const int64_t p = diag.size(0);
@@ -58,3 +60,5 @@ RowID interp_decomp_rows(const torch::Tensor& A, double tol) {
     auto col = interp_decomp_cols(A.t().contiguous(), tol);
     return {std::move(col.cols), col.P.t().contiguous(), std::move(col.sv)};
 }
+
+} // namespace ttid

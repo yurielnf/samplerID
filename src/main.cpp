@@ -1,6 +1,7 @@
 #include <iostream>
 #include <torch/torch.h>
 #include "sampler_id/interp_decomp.h"
+using namespace ttid;
 
 int main() {
     torch::manual_seed(42);

@@ -51,6 +51,8 @@ template<> void geqp3<c10::complex<double>>(int m, int n,
     TORCH_CHECK(info == 0, "zgeqp3 failed, info=", info);
 }
 
+namespace ttid {
+
 std::tuple<torch::Tensor, std::vector<int>> rrQR(const torch::Tensor& A) {
     TORCH_CHECK(A.dim() == 2 && A.device() == torch::kCPU, "rrQR: need 2D CPU tensor");
     const int m = A.size(0), n = A.size(1), k = std::min(m, n);
@@ -90,3 +92,5 @@ std::tuple<torch::Tensor, std::vector<int>> rrQR(const torch::Tensor& A) {
     for (int i = 0; i < n; ++i) P[i] = jpvt[i] - 1;
     return {R, P};
 }
+
+} // namespace ttid

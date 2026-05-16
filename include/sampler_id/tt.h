@@ -5,6 +5,8 @@
 #include <cmath>
 #include <type_traits>
 
+namespace ttid {
+
 template<typename T = double>
 class TensorTrain {
     static constexpr auto dtype_v = c10::CppTypeToScalarType<T>::value;
@@ -91,3 +93,5 @@ TensorTrain(const torch::Tensor&)        -> TensorTrain<double>;
 TensorTrain(const torch::Tensor&, double) -> TensorTrain<double>;
 TensorTrain(int)                          -> TensorTrain<double>;
 TensorTrain(std::vector<torch::Tensor>)   -> TensorTrain<double>;
+
+} // namespace ttid
