@@ -18,6 +18,16 @@ if(NOT Torch_FOUND)
     find_package(Torch REQUIRED)
 endif()
 
+set(SAMPLER_HEADERS
+    include/sampler_id/grid.h
+    include/sampler_id/index_set.h
+    include/sampler_id/interp_decomp.h
+    include/sampler_id/lapack_wrapper.h
+    include/sampler_id/q_tt_id.h
+    include/sampler_id/tt.h
+    include/sampler_id/tt_id.h
+)
+
 set(SAMPLER_SOURCES
     src/lapack_wrapper.cpp
     src/interp_decomp.cpp
@@ -25,7 +35,7 @@ set(SAMPLER_SOURCES
 set(SAMPLER_INCLUDE include)
 set(SAMPLER_LIBS "${TORCH_LIBRARIES}" lapack)
 
-add_executable(sampler src/main.cpp ${SAMPLER_SOURCES})
+add_executable(sampler src/main.cpp ${SAMPLER_SOURCES} ${SAMPLER_HEADERS})
 target_include_directories(sampler PRIVATE ${SAMPLER_INCLUDE})
 target_link_libraries(sampler ${SAMPLER_LIBS})
 

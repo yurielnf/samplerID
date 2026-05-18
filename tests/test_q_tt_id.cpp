@@ -13,9 +13,11 @@ TEST_CASE("scale separation", "[q_tt_id]")
     ci.addPivotsAllBonds({vector<int>(20, 1)});
     ci.iterate(5);
 
-    cout << "cIter=" << ci.cIter << ", rank=" << ci.pivotError.size()-1 << "\n";
-    for (auto i = 0u; i < ci.pivotError.size(); i++)
-        cout << i << " " << ci.pivotError[i] << "\n";
+    // cout << "cIter=" << ci.cIter << ", rank=" << ci.pivotError.size()-1 << "\n";
+    // for (auto i = 0u; i < ci.pivotError.size(); i++)
+    //     cout << i << " " << ci.pivotError[i] << "\n";
+    REQUIRE(ci.pivotError.size()==12);
+    REQUIRE(ci.pivotError.at(11)<1e-10);
 }
 
 TEST_CASE("Hiroshi example", "[q_tt_id]")
@@ -33,29 +35,22 @@ TEST_CASE("Hiroshi example", "[q_tt_id]")
                 if (abs(r-x) < delta) y += 2*abstol;
             return y;
         };
-        auto ci = q_tt_id<double>(ft, grid::Quantics{0, 1, nBit}, {.bondDim=100});
-        ci.iterate(2);
+        auto ci = q_tt_id<double>(ft, grid::Quantics{0, 1, nBit}, {.bondDim=200});
         ci.addPivotValues({rpoint.begin(), rpoint.end()});
-        ci.iterate(4);
         auto qtt = ci.get_qtt();
 
+        double errorMax=-1;
         for (double x : rpoint) {
             double errorx = abs(qtt.eval({x}) - ft(x));
-            if (errorx > 1e-8) {
-                cout << x << " (points)-->" << errorx << "\n";
-                for (double xr : rpoint) {
-                    cout << xr;
-                    for (auto id : qtt.grid.coord_to_id({xr})) cout << " " << id;
-                    cout << "\n";
-                }
-                break;
-            }
+            if (errorx>errorMax) errorMax=errorx;
         }
+        REQUIRE(errorMax < 1e-8);
+
         for (auto i = 0; i < 200; i++) {
             auto x = 1.0*(rand()%(1<<nBit))/(1<<nBit);
             double errorx = abs(qtt.eval({x}) - ft(x));
-            if (errorx > 1e-8)
-                cout << x << " (random)-->" << errorx << "\n";
+            if (errorx>errorMax) errorMax=errorx;
         }
+        REQUIRE(errorMax < 1e-8);
     }
 }

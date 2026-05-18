@@ -1,5 +1,4 @@
 #pragma once
-#include "interp_decomp.h"
 #include "index_set.h"
 #include "tt.h"
 #include <functional>
@@ -105,15 +104,19 @@ protected:
 
         if (b < center) {
             auto res = interp_decomp_rows(M, param.reltol);
+            int64_t k = (int64_t)res.rows.size();
+            auto res_col = interp_decomp_cols(M, k);
             Iset[b + 1] = Ib.at(res.rows);
-            Jset[b] = Iset[b + 1];
+            Jset[b] = Jb.at(res_col.cols);
             tt.cores[b] = res.P;
             tt.cores[b + 1] = M.index({torch::tensor(res.rows, torch::kLong), torch::indexing::Slice()});
             collectPivotError(res.sv);
         } else {
             auto res = interp_decomp_cols(M, param.reltol);
+            int64_t k = (int64_t)res.cols.size();
+            auto res_row = interp_decomp_rows(M, k);
             Jset[b] = Jb.at(res.cols);
-            Iset[b + 1] = Jset[b];
+            Iset[b + 1] = Ib.at(res_row.rows);
             tt.cores[b] = M.index({torch::indexing::Slice(), torch::tensor(res.cols, torch::kLong)});
             tt.cores[b + 1] = res.P;
             collectPivotError(res.sv);
