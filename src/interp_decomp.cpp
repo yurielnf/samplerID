@@ -47,7 +47,7 @@ ColID interp_decomp_cols(const torch::Tensor& A, double tol, int64_t k) {
         rank = std::min(rank, rank_from_diag(R, tol));
     }
     if (k != INT64_MAX) {
-        TORCH_CHECK(k > 0 && k <= max_k, "k out of range");
+        TORCH_CHECK(k > 0, "k must be positive");
         rank = std::min(rank, k);
     }
     return build_col_id(A, R, P, rank);

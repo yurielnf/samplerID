@@ -79,7 +79,7 @@ TEST_CASE("interp_decomp_cols input validation", "[id]") {
     auto good = torch::randn({5, 4});
     REQUIRE_THROWS(interp_decomp_cols(torch::randn({3, 3, 3}), 0.0, INT64_C(2)));
     REQUIRE_THROWS(interp_decomp_cols(good, 0.0, INT64_C(0)));
-    REQUIRE_THROWS(interp_decomp_cols(good, 0.0, INT64_C(5)));
+    REQUIRE_NOTHROW(interp_decomp_cols(good, 0.0, INT64_C(5)));  // k > max_k silently caps
 }
 
 TEST_CASE("interp_decomp_cols singular values", "[id]") {
