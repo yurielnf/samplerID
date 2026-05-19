@@ -19,7 +19,7 @@ TEST_CASE("interp_decomp_cols exact rank-k", "[id]") {
     SECTION("float64") {
         auto A = torch::mm(torch::randn({m, r}, torch::kFloat64),
                            torch::randn({n, r}, torch::kFloat64).t());
-        auto res = interp_decomp_cols(A, r);
+        auto res = interp_decomp_cols(A, 0.0, r);
         REQUIRE((int64_t)res.cols.size() == r);
         REQUIRE(res.P.sizes() == torch::IntArrayRef({r, n}));
         REQUIRE(rel_err(A, reconstruct(A, res)) < 1e-10);
@@ -28,20 +28,20 @@ TEST_CASE("interp_decomp_cols exact rank-k", "[id]") {
     SECTION("float32") {
         auto A = torch::mm(torch::randn({m, r}, torch::kFloat32),
                            torch::randn({n, r}, torch::kFloat32).t());
-        REQUIRE(rel_err(A, reconstruct(A, interp_decomp_cols(A, r))) < 1e-4f);
+        REQUIRE(rel_err(A, reconstruct(A, interp_decomp_cols(A, 0.0, r))) < 1e-4f);
     }
 
     SECTION("complex128") {
         auto A = torch::mm(torch::randn({m, r}, torch::kComplexDouble),
                            torch::randn({n, r}, torch::kComplexDouble).t());
-        REQUIRE(rel_err(A, reconstruct(A, interp_decomp_cols(A, r))) < 1e-10);
+        REQUIRE(rel_err(A, reconstruct(A, interp_decomp_cols(A, 0.0, r))) < 1e-10);
     }
 }
 
 TEST_CASE("interp_decomp_cols selected columns are actual columns of A", "[id]") {
     torch::manual_seed(1);
     auto A   = torch::randn({15, 12}, torch::kFloat64);
-    auto res = interp_decomp_cols(A, INT64_C(5));
+    auto res = interp_decomp_cols(A, 0.0, INT64_C(5));
 
     for (int64_t i = 0; i < 5; ++i) {
         int64_t c = res.cols[i];
@@ -54,7 +54,7 @@ TEST_CASE("interp_decomp_cols selected columns are actual columns of A", "[id]")
 
 TEST_CASE("interp_decomp_cols distinct indices", "[id]") {
     torch::manual_seed(2);
-    auto res = interp_decomp_cols(torch::randn({25, 18}, torch::kFloat64), INT64_C(6));
+    auto res = interp_decomp_cols(torch::randn({25, 18}, torch::kFloat64), 0.0, INT64_C(6));
     auto s   = res.cols; std::sort(s.begin(), s.end());
     REQUIRE(std::adjacent_find(s.begin(), s.end()) == s.end());
 }
@@ -64,7 +64,7 @@ TEST_CASE("interp_decomp_cols quality improves with rank", "[id]") {
     auto A = torch::randn({40, 30}, torch::kFloat64);
     double prev = 1.0;
     for (int64_t k : {3, 6, 10, 15}) {
-        double e = rel_err(A, reconstruct(A, interp_decomp_cols(A, k)));
+        double e = rel_err(A, reconstruct(A, interp_decomp_cols(A, 0.0, k)));
         REQUIRE(e < prev); prev = e;
     }
 }
@@ -72,14 +72,14 @@ TEST_CASE("interp_decomp_cols quality improves with rank", "[id]") {
 TEST_CASE("interp_decomp_cols full rank → near-zero error", "[id]") {
     torch::manual_seed(4);
     auto A = torch::randn({10, 8}, torch::kFloat64);
-    REQUIRE(rel_err(A, reconstruct(A, interp_decomp_cols(A, INT64_C(8)))) < 1e-10);
+    REQUIRE(rel_err(A, reconstruct(A, interp_decomp_cols(A, 0.0, INT64_C(8)))) < 1e-10);
 }
 
 TEST_CASE("interp_decomp_cols input validation", "[id]") {
     auto good = torch::randn({5, 4});
-    REQUIRE_THROWS(interp_decomp_cols(torch::randn({3, 3, 3}), INT64_C(2)));
-    REQUIRE_THROWS(interp_decomp_cols(good, INT64_C(0)));
-    REQUIRE_THROWS(interp_decomp_cols(good, INT64_C(5)));
+    REQUIRE_THROWS(interp_decomp_cols(torch::randn({3, 3, 3}), 0.0, INT64_C(2)));
+    REQUIRE_THROWS(interp_decomp_cols(good, 0.0, INT64_C(0)));
+    REQUIRE_NOTHROW(interp_decomp_cols(good, 0.0, INT64_C(5)));  // k > max_k silently caps
 }
 
 TEST_CASE("interp_decomp_cols singular values", "[id]") {
@@ -93,7 +93,7 @@ TEST_CASE("interp_decomp_cols singular values", "[id]") {
     A.slice(1, k, n) = torch::randn({m, n - k}, torch::kFloat64) * 0.1;
 
     SECTION("fixed rank") {
-        auto res = interp_decomp_cols(A, k);
+        auto res = interp_decomp_cols(A, 0.0, k);
         auto sv  = res.sv; std::sort(sv.rbegin(), sv.rend());
         for (int64_t i = 0; i < k; ++i)
             REQUIRE(sv[i] == Catch::Approx(sv_exp[i]).epsilon(0.1).margin(0.5));

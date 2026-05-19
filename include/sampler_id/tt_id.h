@@ -103,18 +103,18 @@ protected:
         auto M = tensor_fun_to_mat(Ib, Jb);
 
         if (b < center) {
-            auto res = interp_decomp_rows(M, param.reltol);
+            auto res = interp_decomp_rows(M, param.reltol, param.bondDim);
             int64_t k = (int64_t)res.rows.size();
-            auto res_col = interp_decomp_cols(M, k);
+            auto res_col = interp_decomp_cols(M, 0.0, k);
             Iset[b + 1] = Ib.at(res.rows);
             Jset[b] = Jb.at(res_col.cols);
             tt.cores[b] = res.P;
             tt.cores[b + 1] = M.index({torch::tensor(res.rows, torch::kLong), torch::indexing::Slice()});
             collectPivotError(res.sv);
         } else {
-            auto res = interp_decomp_cols(M, param.reltol);
+            auto res = interp_decomp_cols(M, param.reltol, param.bondDim);
             int64_t k = (int64_t)res.cols.size();
-            auto res_row = interp_decomp_rows(M, k);
+            auto res_row = interp_decomp_rows(M, 0.0, k);
             Jset[b] = Jb.at(res.cols);
             Iset[b + 1] = Ib.at(res_row.rows);
             tt.cores[b] = M.index({torch::indexing::Slice(), torch::tensor(res.cols, torch::kLong)});
@@ -133,14 +133,14 @@ protected:
         auto M = tensor_fun_to_mat(Ib, Jb);
 
         if (isLeft) {
-            auto res = interp_decomp_rows(M, param.reltol);
+            auto res = interp_decomp_rows(M, param.reltol, param.bondDim);
             Iset[b + 1] = Ib.at(res.rows);
             Jset[b] = Iset[b + 1];
             tt.cores[b] = res.P;
             tt.cores[b + 1] = M.index({torch::tensor(res.rows, torch::kLong), torch::indexing::Slice()});
             collectPivotError(res.sv);
         } else {
-            auto res = interp_decomp_cols(M, param.reltol);
+            auto res = interp_decomp_cols(M, param.reltol, param.bondDim);
             Jset[b] = Jb.at(res.cols);
             tt.cores[b] = M.index({torch::indexing::Slice(), torch::tensor(res.cols, torch::kLong)});
             tt.cores[b + 1] = res.P;
