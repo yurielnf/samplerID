@@ -36,7 +36,9 @@ TEST_CASE("Hiroshi example", "[q_tt_id]")
             return y;
         };
         auto ci = q_tt_id<double>(ft, grid::Quantics{0, 1, nBit}, {.bondDim=200});
+        ci.iterate(2);
         ci.addPivotValues({rpoint.begin(), rpoint.end()});
+        ci.iterate(10);
         auto qtt = ci.get_qtt();
 
         double errorMax=-1;
