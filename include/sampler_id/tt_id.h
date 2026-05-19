@@ -54,7 +54,7 @@ struct tt_id {
 
     void addPivotsAllBonds(std::vector<std::vector<int>> const& pivots)
     {
-        for (auto i : {1, 2}) {
+        for (auto i=0; i<4; i++) {
             (void)i;
             if (cIter % 2 == 0)
                 for (auto b = 0u; b < len() - 1; b++) addPivotsAt(pivots, b);
