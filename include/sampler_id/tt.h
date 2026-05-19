@@ -32,7 +32,7 @@ public:
             auto M = C.reshape({r * dk, rest});
             auto [rows, Q, sv] = (tol > 0.0)
                 ? interp_decomp_rows(M, tol)
-                : interp_decomp_rows(M, std::min(r * dk, rest));
+                : interp_decomp_rows(M, 0.0, std::min(r * dk, rest));
             int64_t r_new = (int64_t)rows.size();
             cores.push_back(Q.reshape({r, dk, r_new}));
             C = M.index({torch::tensor(rows, torch::kLong), torch::indexing::Slice()});

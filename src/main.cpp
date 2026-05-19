@@ -11,7 +11,7 @@ int main() {
     auto V = torch::randn({n, r}, torch::kFloat64);
     auto A = torch::mm(U, V.t());  // rank-r matrix
 
-    auto [cols, P, sv] = interp_decomp_cols(A, r);
+    auto [cols, P, sv] = interp_decomp_cols(A, 0.0, r);
 
     auto C     = A.index({torch::indexing::Slice(), torch::tensor(cols, torch::kLong)});
     auto A_approx = torch::mm(C, P);

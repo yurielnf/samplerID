@@ -1,5 +1,6 @@
 #pragma once
 #include <torch/torch.h>
+#include <cstdint>
 #include <vector>
 
 namespace ttid {
@@ -16,9 +17,7 @@ struct RowID {
     std::vector<double> sv;
 };
 
-ColID interp_decomp_cols(const torch::Tensor& A, int64_t k);
-ColID interp_decomp_cols(const torch::Tensor& A, double tol);
-RowID interp_decomp_rows(const torch::Tensor& A, int64_t k);
-RowID interp_decomp_rows(const torch::Tensor& A, double tol);
+ColID interp_decomp_cols(const torch::Tensor& A, double tol = 0.0, int64_t k = INT64_MAX);
+RowID interp_decomp_rows(const torch::Tensor& A, double tol = 0.0, int64_t k = INT64_MAX);
 
 } // namespace ttid

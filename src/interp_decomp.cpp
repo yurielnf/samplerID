@@ -37,27 +37,24 @@ static ColID build_col_id(const torch::Tensor& A, const torch::Tensor& R,
     return {std::move(cols), Pmat, std::move(sv)};
 }
 
-ColID interp_decomp_cols(const torch::Tensor& A, int64_t k) {
+ColID interp_decomp_cols(const torch::Tensor& A, double tol, int64_t k) {
     TORCH_CHECK(A.dim() == 2, "A must be 2D");
-    TORCH_CHECK(k > 0 && k <= std::min(A.size(0), A.size(1)), "k out of range");
+    const int64_t max_k = std::min(A.size(0), A.size(1));
     auto [R, P] = rrQR(A);
-    return build_col_id(A, R, P, k);
+    int64_t rank = max_k;
+    if (tol > 0.0) {
+        TORCH_CHECK(tol < 1.0, "tol must be in (0,1)");
+        rank = std::min(rank, rank_from_diag(R, tol));
+    }
+    if (k != INT64_MAX) {
+        TORCH_CHECK(k > 0 && k <= max_k, "k out of range");
+        rank = std::min(rank, k);
+    }
+    return build_col_id(A, R, P, rank);
 }
 
-ColID interp_decomp_cols(const torch::Tensor& A, double tol) {
-    TORCH_CHECK(A.dim() == 2, "A must be 2D");
-    TORCH_CHECK(tol > 0.0 && tol < 1.0, "tol must be in (0,1)");
-    auto [R, P] = rrQR(A);
-    return build_col_id(A, R, P, rank_from_diag(R, tol));
-}
-
-RowID interp_decomp_rows(const torch::Tensor& A, int64_t k) {
-    auto col = interp_decomp_cols(A.t().contiguous(), k);
-    return {std::move(col.cols), col.P.t().contiguous(), std::move(col.sv)};
-}
-
-RowID interp_decomp_rows(const torch::Tensor& A, double tol) {
-    auto col = interp_decomp_cols(A.t().contiguous(), tol);
+RowID interp_decomp_rows(const torch::Tensor& A, double tol, int64_t k) {
+    auto col = interp_decomp_cols(A.t().contiguous(), tol, k);
     return {std::move(col.cols), col.P.t().contiguous(), std::move(col.sv)};
 }
 
