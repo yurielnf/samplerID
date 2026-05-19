@@ -33,7 +33,33 @@ set(SAMPLER_SOURCES
     src/interp_decomp.cpp
 )
 set(SAMPLER_INCLUDE include)
-set(SAMPLER_LIBS "${TORCH_LIBRARIES}" lapack)
+
+# --- LAPACK ---
+# Prefer a system LAPACK; fall back to OpenBLAS bundled inside LibTorch.
+find_package(LAPACK QUIET)
+if(LAPACK_FOUND)
+    set(LAPACK_LIB ${LAPACK_LIBRARIES})
+else()
+    # libtorch (CPU) ships libopenblas — use it when available.
+    foreach(_search_dir
+            "${libtorch_SOURCE_DIR}/lib"   # FetchContent-downloaded libtorch
+            "${CMAKE_SOURCE_DIR}/libtorch/lib")  # local libtorch/ directory
+        find_library(OPENBLAS_LIB openblas PATHS "${_search_dir}" NO_DEFAULT_PATH)
+        if(OPENBLAS_LIB)
+            break()
+        endif()
+    endforeach()
+    if(OPENBLAS_LIB)
+        message(STATUS "LAPACK: using OpenBLAS bundled with LibTorch (${OPENBLAS_LIB})")
+        set(LAPACK_LIB ${OPENBLAS_LIB})
+    else()
+        message(FATAL_ERROR
+            "LAPACK not found. Install liblapack-dev or libopenblas-dev, "
+            "or place a libtorch/ directory next to CMakeLists.txt.")
+    endif()
+endif()
+
+set(SAMPLER_LIBS "${TORCH_LIBRARIES}" ${LAPACK_LIB})
 
 add_executable(sampler src/main.cpp ${SAMPLER_SOURCES} ${SAMPLER_HEADERS})
 target_include_directories(sampler PRIVATE ${SAMPLER_INCLUDE})
