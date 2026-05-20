@@ -71,8 +71,16 @@ add_executable(test_q_tt_id
 target_include_directories(test_q_tt_id PRIVATE ${SAMPLER_INCLUDE})
 target_link_libraries(test_q_tt_id ${SAMPLER_LIBS} Catch2::Catch2WithMain)
 
+add_executable(test_block_tt_id
+    tests/test_block_tt_id.cpp
+    ${SAMPLER_SOURCES}
+)
+target_include_directories(test_block_tt_id PRIVATE ${SAMPLER_INCLUDE})
+target_link_libraries(test_block_tt_id ${SAMPLER_LIBS} Catch2::Catch2WithMain)
+
 include(CTest)
 include(Catch)
 catch_discover_tests(test_interp_decomp)
 catch_discover_tests(test_tt)
 catch_discover_tests(test_q_tt_id)
+catch_discover_tests(test_block_tt_id)
